@@ -13,10 +13,16 @@ const { resourceLimits } = require('worker_threads');
 const HeartRate = require('./models/heartrate');
 const heartrate = require('./models/heartrate');
 //const HeartRate = require('./')
+const cors = require('cors');
 
+const corsOptions = {
+    origin: 'http://localhost:8080', // or the specific port your frontend runs on
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json()) // extra jso
-
+cors
 
 app.use((req, res, next) => {
     console.log(req.path, res.method)
@@ -42,7 +48,7 @@ app.get('/login', function(req, res) {
 });
 
 app.get('/callback', async function(req, res) {
-    const code = "AQBbjyf859hFAXD28iumt7nHqSFVZamr1fva-tK0Vy_sQC7rZg7qY9lMaEH4zRBsFoL6EKB2KOo7xQeLzxecgNrZuV8rYEeR2zVK5atRA2rsL_ZwNaiO1xTUgL1zHTJemhqhxsEPrUS2Z2HjyVA2v2W5gtdqz3H1ikpCchL4A4VLuC7io8iRHGvWvQ4b6W9yJ-Y77DM2eUEWArLshfxRs295CAqRRJNhhoWbR8zkQSV0Efg_BN4UM4keL7yM3lxCpDLc_3KLBNSzF2F2od5pFjFpeos"
+    const code = "AQCUjCXbEcd8IDmCCHgAfT1ZIr807iVb2DZQWDI-R-zMH-pY0bbpkLg3TU7MObKYjpkpPjGcxKx5zk-eYtQo6k1YeeELpHoO4xV8C-TPelazoo0gmfO0UyGLqp-2WiYYFx4gUYuG8t9PCsrVt9fy8CMvwAs2-w-MN5BmiKeGR4TP84HV11HqkTX8_GPZnH_xpkmtq7NqLGTpCVLo9yVrmaM5UPKiMcCo7w3Yi3yc7npbijTIrWZZE8U5d8W8yT-zX0jqGH79mbwwVHqroljWOrOh6sk"
         try {
             const requestOptions = {
                 method: 'POST',
@@ -88,16 +94,21 @@ app.put('/playback', async function(req, res) {
         ...req.body
       })
     var heartrate = heartdata["rate"]
-    if (req.body["mode"] == 1){ heartrate= heartrate - 20 < 60 ? 60 : Math.round((heartrate - 20)/10) * 10}
+    if (req.body["mode"] == 1){ heartrate= heartrate - 20 < 60 ? 60 : Math.round((heartrate - 20)/10) * 10
+}
     else if (req.body["mode"] > 1){
         console.log("burhg")
         heartrate = heartrate + 20 > 140 ? 140 : Math.round((heartrate + 20)/10) * 10
     }else if (req.body["mode"] == 0 ){
-        heartrate = Math.round((heartrate )/10) * 10
+        if (heartrate < 60) {heartrate = 60}
+        else if (heartrate > 130) {heartrate = 130}
+        else {
+            heartrate = Math.round((heartrate )/10) * 10
+        }
     }
     heartrate_str = heartrate.toString()
 
-    const code = "BQCK-xrQHRVyy0gu5xJw95juJ7SahjDattxb42RMoHAe7YTNCYnL8-2Ku57pVJ4NzUKmZnCKdf9G_BsrIleUh58L8PUpoyIBVus28sZYRw5UdrURy3bSJe3fCwQ49YKQXv5KY5StXui2rNcj8QRMtgO2UUUALe8aACPYkEvqFVAhKniIyG8rfe0y9B2yqWF808lzUdAMEytMkE7M-QYqdLE"
+    const code = "BQCwdlacrvUzKQLXKwn06ZtQXcnx-_ejKL0mqvZwesZFc_AF3tP42SzIWMIKEfArgwY69nVEPea4r4sR7VhOepe_T_kj3JZvx3-8ghJQIt0GA3d0jdT6-HvXV_IeM_yBMhI7VobCmdjvxEanhO-8ypuA5vKBOtGS4dKaH7P9R7RLbJFt2UzTuaNKF9Egp8M1Wlt0GAhd3Xq0HFmzd_Czx9o"
 
      rate = "90"//(Math.ceil(heartdata["rate"]/ 10) * 10).toString()
      console.log(heartrate_str)
@@ -144,4 +155,3 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
     }).catch((error) => {
         console.log(error)
 })
-
