@@ -1,12 +1,18 @@
 const http = require('http');
 const express = require("express")
 const mongoose = require("mongoose")
+const song_list = require("./songs")
 //const fetch = require('node-fetch')
 require('dotenv').config()
 
 const app = express()
 
-const refRoutes = require("./routes/heartrate")
+const refRoutes = require("./routes/heartrate");
+const { stringify } = require('querystring');
+const { resourceLimits } = require('worker_threads');
+const HeartRate = require('./models/heartrate');
+const heartrate = require('./models/heartrate');
+//const HeartRate = require('./')
 
 
 app.use(express.json()) // extra jso
@@ -36,8 +42,7 @@ app.get('/login', function(req, res) {
 });
 
 app.get('/callback', async function(req, res) {
-    const code = "AQBDa_OBc6GUFkFohB4duGtAKF1_rkkW3nKg-yikc7bAoSgGkxCV4lG1hytgYC7SuBumKTAG6XlvMq-p_4SkxkEfIijIAZl6rt1aqxFM_ineHqnsrtbmZz6nzYyrbByUlmOp7hM-D_PoM-z9CjOubqO6bCzTx3XO7VNv_-eH_iNy5BQvkOuel7R42ipsgZCyaWAuTS2PaMTYdDqcpkQl_0Kckn2KAEVoxNFx87D6MGrntMubEbfho2h1meJ4mDalI00d04gbZuEgyxbiZKne_o85W0Q"
-    if (code) {
+    const code = "AQBbjyf859hFAXD28iumt7nHqSFVZamr1fva-tK0Vy_sQC7rZg7qY9lMaEH4zRBsFoL6EKB2KOo7xQeLzxecgNrZuV8rYEeR2zVK5atRA2rsL_ZwNaiO1xTUgL1zHTJemhqhxsEPrUS2Z2HjyVA2v2W5gtdqz3H1ikpCchL4A4VLuC7io8iRHGvWvQ4b6W9yJ-Y77DM2eUEWArLshfxRs295CAqRRJNhhoWbR8zkQSV0Efg_BN4UM4keL7yM3lxCpDLc_3KLBNSzF2F2od5pFjFpeos"
         try {
             const requestOptions = {
                 method: 'POST',
@@ -69,18 +74,37 @@ app.get('/callback', async function(req, res) {
             console.error('Error:', error);
             res.status(500).send('An error occurred.');
         }
-    } else {
-        res.status(400).send('No code provided. Cannot retrieve token.');
-    }
+
 });
 
 app.put('/playback', async function(req, res) {
-    const code = "BQCKMXezaopVc0b707N1cjUA_NNO5gGHjF2NwrdhMuJYxv3lEVNgT24arSdRiJ2Ozib_bbcLze0IegoF26CruqrTjc0P2EpiDUs7Li2tSnGbJ250G0RVd6eSySU1dmtzd89BZglrvReBnxCT6ynB_rbz3h-Ok-7xxSUpwV3ekW3kei1TIpv6AyZnBmk0oDXUQj9AqHtYpPweTwyG50SsG4o"
-    
+    const  id  = '65ac5ea8e1a9bc3f088d1350'
+    const heartdata = await HeartRate.findById(id)
+  
+    if (!heartdata) {
+      return res.status(404).json({error: 'No such '})
+    }
+    await HeartRate.findOneAndUpdate({_id: id}, {
+        ...req.body
+      })
+    var heartrate = heartdata["rate"]
+    if (req.body["mode"] == 1){ heartrate= heartrate - 20 < 60 ? 60 : Math.round((heartrate - 20)/10) * 10}
+    else if (req.body["mode"] > 1){
+        console.log("burhg")
+        heartrate = heartrate + 20 > 140 ? 140 : Math.round((heartrate + 20)/10) * 10
+    }else if (req.body["mode"] == 0 ){
+        heartrate = Math.round((heartrate )/10) * 10
+    }
+    heartrate_str = heartrate.toString()
 
-    heartdata = req.body
-    if (heartdata){ rate = heartdata["rate"]}
+    const code = "BQCK-xrQHRVyy0gu5xJw95juJ7SahjDattxb42RMoHAe7YTNCYnL8-2Ku57pVJ4NzUKmZnCKdf9G_BsrIleUh58L8PUpoyIBVus28sZYRw5UdrURy3bSJe3fCwQ49YKQXv5KY5StXui2rNcj8QRMtgO2UUUALe8aACPYkEvqFVAhKniIyG8rfe0y9B2yqWF808lzUdAMEytMkE7M-QYqdLE"
 
+     rate = "90"//(Math.ceil(heartdata["rate"]/ 10) * 10).toString()
+     console.log(heartrate_str)
+     console.log(song_list[heartrate_str][0])
+
+
+    console.log(heartrate_str)
     if (code) {
         try {
             const requestOptions = {
@@ -89,27 +113,20 @@ app.put('/playback', async function(req, res) {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${code}`
                 },
-                body: new URLSearchParams({
-                    "context_uri": "spotify:album:5ht7ItJgpBH7W6vJ5BqpPr",
+                body: JSON.stringify({
+                    "context_uri": song_list[heartrate_str][0],
                     "offset": {
                         "position": 5
                     },
                     "position_ms": 0
                 })
             };
+            console.log('kadkfdisdf')
 
-            const response = await fetch('https://accounts.spotify.com/api/token', requestOptions);
-            const data = await response.json();
+            const response = await fetch('https://api.spotify.com/v1/me/player/play', requestOptions);
+            //const data = await response.json();
+            //console.log(data)
 
-            if (response.ok) {
-                // Access token retrieved successfully
-                console.log('Access Token:', data.access_token);
-                res.json(data); // Send the data back to the client
-            } else {
-                // Handle errors
-                console.error('Token retrieval error:', data);
-                res.status(400).json(data);
-            }
         } catch (error) {
             console.error('Error:', error);
             res.status(500).send('An error occurred.');
@@ -117,6 +134,7 @@ app.put('/playback', async function(req, res) {
     } else {
         res.status(400).send('No code provided. Cannot retrieve token.');
     }
+    res.status(200).json({"wow": "epic"})
 });
 
 mongoose.connect(process.env.MONGO_URI).then(() => {

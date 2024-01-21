@@ -4,6 +4,10 @@ const heartrate_schema = new mongoose.Schema( {
     rate: {
         type: Number,
         required: true
+    },
+    mode: {
+        type:Number,
+        required:true
     }
 }, {timestamps:true})
 

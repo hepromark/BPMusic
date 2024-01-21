@@ -2,6 +2,7 @@
 const HeartRate = require("../models/heartrate") // db model
 const mongoose = require('mongoose')
 const start_song = require("./spotify")
+
 require('dotenv').config()
 
 
@@ -56,11 +57,12 @@ const play_song = async(req, res) => {
     const heartdata = req.body
     if (heartdata) {const rate = heartdata["rate"]}
 
+
     const requestOptions = {
         method: 'PUT',
         headers: { 
             "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": "Basic " + btoa("d44b18cce0e744deb030c7ed8f4db49b:39f8b6fd14904b769f52540bbd577f56") // client_id and client_secret should be your app's credentials
+            "Authorization": "Bearer" + "aasdfa"// client_id and client_secret should be your app's credentials
         },
         body: new URLSearchParams({
             grant_type: "authorization_code",
@@ -151,11 +153,11 @@ const updateHeartData = async(req, res) => {
     const heartdata = await HeartRate.findOneAndUpdate({_id: id}, {
       ...req.body
     })
-  
+    
     if (!heartdata) {
       return res.status(400).json({error: 'No such workout'})
     }
-  
+    console.log(`cool bpm from mark: ${heartdata["rate"]}`)
     res.status(200).json(heartdata)
 }
 
