@@ -4,11 +4,54 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
+	<title>BPMusic</title>
 	<link rel="stylesheet" href="style.css">
+
+<script>
+
+// Defining API URL
+const apiUrl2 = "http://localhost:3001/api/heartrate/65ac5ea8e1a9bc3f088d1350"
+
+const getBPM = () => {
+	console.log("function called");
+    fetch(apiUrl2)
+    .then(response => {
+		console.log(response);
+        if (!response.ok) {
+            if(response.status === 404) {
+                throw new Error('Data not found');
+            } else if (response.status === 500) {
+                throw new Error('Server error');
+            } else {
+                throw new Error('Network response was not ok');
+                }
+            }
+        return response.json();
+    })
+
+.then(data => {
+    outputElement.textContent = JSON.stringify(data, null, 2)
+})
+.catch(error => {
+    console.error('Error:', error);
+});
+
+
+}
+</script>
+
 </head>
 <body>
-
+	<h1>BPMusic</h1>
 	<script src="script.js"></script>
+	<section id ="buttons">
+		<div class="btn-container"> 
+			<button class="btn btn-color-1" onclick="getBPM()">Play</button>
+			<button class="btn btn-color-2" onclick="getBPM()">Play</button>
+			<button class="btn btn-color-3" onclick="getBPM()">Play</button>
+
+		</div>
+	</section>
+
 </body>
 </html>
