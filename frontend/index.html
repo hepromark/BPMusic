@@ -10,33 +10,23 @@
 <script>
 
 // Defining API URL
-const apiUrl2 = "http://localhost:3001/api/heartrate/65ac5ea8e1a9bc3f088d1350"
+const apiUrl2 = "http://localhost:3001/playback"
 
-const getBPM = () => {
-	console.log("function called");
-    fetch(apiUrl2)
-    .then(response => {
-		console.log(response);
-        if (!response.ok) {
-            if(response.status === 404) {
-                throw new Error('Data not found');
-            } else if (response.status === 500) {
-                throw new Error('Server error');
-            } else {
-                throw new Error('Network response was not ok');
-                }
-            }
-        return response.json();
-    })
+const playback = async (mode) => {
+    try{
+        const response = await fetch(apiUrl2, {
+        method: "put",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            mode: mode
+            })
+    });
 
-.then(data => {
-    outputElement.textContent = JSON.stringify(data, null, 2)
-})
-.catch(error => {
-    console.error('Error:', error);
-});
-
-
+	}catch (error) {
+		console.log("error")
+	}
 }
 </script>
 
@@ -46,9 +36,9 @@ const getBPM = () => {
 	<script src="script.js"></script>
 	<section id ="buttons">
 		<div class="btn-container"> 
-			<button class="btn btn-color-1" onclick="getBPM()">Play</button>
-			<button class="btn btn-color-2" onclick="getBPM()">Play</button>
-			<button class="btn btn-color-3" onclick="getBPM()">Play</button>
+			<button class="btn btn-color-1" onclick="playback(1)">Slow</button>
+			<button class="btn btn-color-2" onclick="playback(0)">Normal</button>
+			<button class="btn btn-color-3" onclick="playback(2)">Fast</button>
 
 		</div>
 	</section>

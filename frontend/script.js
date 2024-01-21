@@ -1,4 +1,4 @@
-// Defining API URL
+// Defining API URL tbh im not even sure if this is useful
 const apiUrl = "https://localhost:3001/api/heartrate/65ac5ea8e1a9bc3f088d1350"
 
 
