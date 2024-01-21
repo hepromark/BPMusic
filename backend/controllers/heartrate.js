@@ -1,13 +1,98 @@
 // utility functions for route api calls
 const HeartRate = require("../models/heartrate") // db model
 const mongoose = require('mongoose')
+const start_song = require("./spotify")
+require('dotenv').config()
+
+
+const authorizeSpotify = async(req, res) => {
+    const requestOptions = {
+        method: 'GET',
+        headers: { 
+            "client_id": "d44b18cce0e744deb030c7ed8f4db49b",
+            "redirect_uri": "http://localhost:3001/api/heartrate/callback/sun",
+            "response_type": "code",
+            "scope": "user-modify-playback-state user-read-private user-read-email"
+        },
+    };//https://accounts.spotify.com/authorize?client_id=d44b18cce0e744deb030c7ed8f4db49b&response_type=code&redirect_uri=http://localhost:3001/api/heartrate/callback/sun&scope=user-modify-playback-state%20user-read-private%20user-read-email
+    const response = await fetch('https://accounts.spotify.com/authorize', requestOptions);
+    const data = await response.json();
+    console.log(data)
+}
+
+const gettoken = async(req, res) => {
+    const requestOptions = {
+        method: 'POST',
+        headers: { 
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "Basic " + btoa("d44b18cce0e744deb030c7ed8f4db49b:39f8b6fd14904b769f52540bbd577f56") // client_id and client_secret should be your app's credentials
+        },
+        body: new URLSearchParams({
+            grant_type: "authorization_code",
+            code: code, 
+            redirect_uri: "http://localhost:3001/api/heartrate/callback/sun"
+        })
+    };
+    
+    try {
+        const response = await fetch('https://accounts.spotify.com/api/token', requestOptions);
+        if (!response.ok) {
+            // Handle errors
+            console.error('Response Status:', response.status);
+            const errorText = await response.text();
+            console.error('Response Text:', errorText);
+            return;
+        }
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+} 
+
+
+
+const play_song = async(req, res) => {
+    const heartdata = req.body
+    if (heartdata) {const rate = heartdata["rate"]}
+
+    const requestOptions = {
+        method: 'PUT',
+        headers: { 
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "Basic " + btoa("d44b18cce0e744deb030c7ed8f4db49b:39f8b6fd14904b769f52540bbd577f56") // client_id and client_secret should be your app's credentials
+        },
+        body: new URLSearchParams({
+            grant_type: "authorization_code",
+            code: code, 
+            redirect_uri: "http://localhost:3001/api/heartrate/callback/sun"
+        })
+    };
+    
+    try {
+        const response = await fetch('https://accounts.spotify.com/api/token', requestOptions);
+        if (!response.ok) {
+            // Handle errors
+            console.error('Response Status:', response.status);
+            const errorText = await response.text();
+            console.error('Response Text:', errorText);
+            return;
+        }
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+}
 
 
 // get all workouts
 const fetchAllHeartrateData = async(req, res) => {
-    const heartdata = HeartRate.find({}).sort({createdAt: -1})
+    const heartdata = await HeartRate.find({}).sort({createdAt: -1})
 
     res.status(200).json(heartdata)
+    //start_song(process.env.SPOTIFY_ACCESS,  process.env.SPOTIFY_URI)
+
 }
 
 // get a single workout
@@ -62,10 +147,11 @@ const updateHeartData = async(req, res) => {
         return res.status(404).json({error: "No reference found !"})
     }
 
-    const heartdata= await HeartRate.findOneAndUpdate({_id: id},
-        {
-            ...req.body  
-        })
+    const heartdata = await HeartRate.findByIdAndUpdate(id, 
+        { $set: req.body }, 
+        { new: true, runValidators: true }
+    );
+    console.log("killmenow")
 
     if (!heartdata) {
         return res.status(404).json({error: "No reference found !"})
@@ -74,6 +160,8 @@ const updateHeartData = async(req, res) => {
 }
 
 module.exports = {
+    authorizeSpotify, 
+    gettoken, 
     fetchAllHeartrateData,
     fetchHeartrateData,
     createHeartData,

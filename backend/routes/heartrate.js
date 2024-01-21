@@ -2,6 +2,8 @@ const express = require("express")
 const ReferenceImg = require("../models/heartrate") // db model
 const router = express.Router()
 const {
+    authorizeSpotify,
+    gettoken,
     fetchAllHeartrateData,
     fetchHeartrateData,
     createHeartData,
@@ -10,7 +12,9 @@ const {
 } = require("../controllers/heartrate")
 
 
+router.get('/callback', authorizeSpotify)
 
+router.post('/ballback', gettoken)
 
 //get all refs
 router.get('/', fetchAllHeartrateData)
@@ -19,7 +23,7 @@ router.get('/', fetchAllHeartrateData)
 router.get('/:id', fetchHeartrateData)
 
 //POST a signle ref
-router.post('/', createHeartData) 
+router.post('/:id', updateHeartData) 
 
 //delete a ref
 router.delete('/:id', deleteHeartData)
