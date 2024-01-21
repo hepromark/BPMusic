@@ -4,11 +4,44 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
+	<title>BPMusic</title>
 	<link rel="stylesheet" href="style.css">
+
+<script>
+
+// Defining API URL
+const apiUrl2 = "http://localhost:3001/playback"
+
+const playback = async (mode) => {
+    try{
+        const response = await fetch(apiUrl2, {
+        method: "put",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            mode: mode
+            })
+    });
+
+	}catch (error) {
+		console.log("error")
+	}
+}
+</script>
+
 </head>
 <body>
-
+	<h1>BPMusic</h1>
 	<script src="script.js"></script>
+	<section id ="buttons">
+		<div class="btn-container"> 
+			<button class="btn btn-color-1" onclick="playback(1)">Slow</button>
+			<button class="btn btn-color-2" onclick="playback(0)">Normal</button>
+			<button class="btn btn-color-3" onclick="playback(2)">Fast</button>
+
+		</div>
+	</section>
+
 </body>
 </html>
