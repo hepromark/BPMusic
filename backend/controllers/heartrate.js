@@ -142,21 +142,21 @@ const deleteHeartData = async(req, res) => {
 
 // update a workout
 const updateHeartData = async(req, res) => {
-    const {id} = req.params
+    const { id } = req.params
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).json({error: "No reference found !"})
+      return res.status(400).json({error: 'No such workout'})
     }
-
-    const heartdata = await HeartRate.findByIdAndUpdate(id, 
-        { $set: req.body }, 
-        { new: true, runValidators: true }
-    );
-    console.log("killmenow")
-
+  
+    const heartdata = await HeartRate.findOneAndUpdate({_id: id}, {
+      ...req.body
+    })
+  
     if (!heartdata) {
-        return res.status(404).json({error: "No reference found !"})
+      return res.status(400).json({error: 'No such workout'})
     }
-    res.status(200)
+  
+    res.status(200).json(heartdata)
 }
 
 module.exports = {
